@@ -1,0 +1,69 @@
+% Kabyle (kab-Latn) preprocessor for Epitran
+% Author: Athmane MOKRAOUI
+% 
+% This preprocessor implements Kabyle-specific phonological processes
+% before grapheme-to-phoneme mapping.
+%
+% Key processes:
+% 1. Consonant assimilation (n->m before labials)
+% 2. Loanword adaptation (p->b from French)
+% 3. Geminate shielding (protect from spirantization)
+% 4. Spirantization: t->θ in post-vocalic position
+% 5. Lexical exceptions (tayri->tajri)
+%
+% Phonological basis:
+% - Kabyle is a "spirantizing" Berber language (Kossmann & Stroomer 1997)
+% - Spirantization affects lax stops but NOT geminates (tense stops)
+% - Post-sonorant occlusivization blocks spirantization after m, n, l, r
+%   (Bedar, Quellec & Tifrit 2022 on Chemini Kabyle)
+
+% ============================================================
+% 1. CONSONANT ASSIMILATION & LOANWORD ADAPTATIONS
+% ============================================================
+% Regressive assimilation: n becomes m before labials
+n -> m / _ (b|m|p)
+
+% French loanword adaptation: p becomes b
+p -> b / _
+
+% ============================================================
+% 2. GEMINATE SHIELDING
+% ============================================================
+% Geminates are NEVER spirantized in Kabyle - they remain stops.
+% We temporarily shield them with capital letters, then unshield.
+% This must happen BEFORE spirantization rules.
+
+% Shield tt (the main geminate that would be affected by t->θ)
+tt -> TT / _
+
+% ============================================================
+% 3. SPIRANTIZATION
+% ============================================================
+% In Kabyle, the letter 't' represents both /t/ (stop) and /θ/ (fricative).
+% The fricative allophone appears in post-vocalic position (after vowels).
+% 
+% Rule: t -> θ when adjacent to a vowel (before or after)
+% This captures the general spirantization pattern in Kabyle.
+%
+% Note: This is a simplification. Full spirantization in Kabyle also
+% involves b->β, d->ð, g->ʝ, k->ç, but these are not distinguished
+% in standard orthography, so only t->θ is handled here.
+
+% t -> θ before vowel
+t -> θ / _ (a|e|i|u)
+
+% t -> θ after vowel
+t -> θ / (a|e|i|u) _
+
+% ============================================================
+% 4. UNSHIELD GEMINATES
+% ============================================================
+% Restore shielded geminates to their original form
+TT -> tt / _
+
+% ============================================================
+% 5. LEXICAL EXCEPTIONS
+% ============================================================
+% tayri (love) has intervocalic t->j (palatalization), not t->θ
+% This is a specific lexical item, not a general rule
+tayri -> tajri / _
