@@ -1,0 +1,24 @@
+% Kabyle (kab-Latn) postprocessor for Epitran
+% Author: Athmane MOKRAOUI
+%
+% This postprocessor cleans up phonological output after mapping.
+% 
+% Current version is minimal - most Kabyle phonology is handled
+% in the preprocessor. Future versions may add:
+% - Schwa deletion in specific cluster environments
+% - Emphatic spread effects on vowels
+% - Vowel reduction rules
+
+% ============================================================
+% 1. SCHWA CLEANUP (optional)
+% ============================================================
+% Delete schwa between consonants in certain environments
+% This is a conservative rule - uncomment if needed
+% ə -> 0 / (b|d|f|g|ɣ|h|j|k|l|m|n|q|r|s|t|w|x|z|ʃ|ʒ|χ|ħ|θ) _ (b|d|f|g|ɣ|h|j|k|l|m|n|q|r|s|t|w|x|z|ʃ|ʒ|χ|ħ|θ)
+
+% ============================================================
+% 2. VOWEL LENGTH REMOVAL
+% ============================================================
+% Kabyle does not have phonemic vowel length.
+% If length markers appear (from geminate mapping), they are
+% consonantal length, not vocalic. No action needed here.
