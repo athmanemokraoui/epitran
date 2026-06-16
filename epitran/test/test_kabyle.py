@@ -7,11 +7,12 @@ class TestKabyle(unittest.TestCase):
 
     def test_basic_words(self):
         for i, o in [
-            ("taqcict", "taqʃiʃt"),
-            ("axxam", "aχːam"),
-            ("Nniɣ", "nːiɣ"),
-            ("abrid", "abrid"),
-            ("tuwiḍ", "tuwidˤ"),
+            ("taqcict", "θæqʃiʃθ"),
+            ("tamellalt", "θæməlːælt"),
+            ("axxam", "æχːæm"),
+            ("Nniɣ", "nːiʁ"),
+            ("abrid", "æβrid"),
+            ("tewwiḍ", "θəwːidˤ"),
         ]:
             tr = self.epi.transliterate(i)
             self.assertEqual(tr, o)
