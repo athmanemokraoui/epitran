@@ -11,6 +11,17 @@ from epitran.xsampa import XSampa
 logger = logging.getLogger('epitran')
 logger.setLevel(logging.WARNING)
 
+# Language-script pairs that use specialized backends instead of SimpleEpitran.
+# Each key is an ISO 639-3 + ISO 15924 code; value is the backend class.
+SPECIAL_LANGUAGE_BACKENDS = {
+    'eng-Latn': FliteLexLookup,
+    'cmn-Hans': Epihan,
+    'cmn-Hant': EpihanTraditional,
+    'jpn-Jpan': EpiJpan,
+    'yue-Hant': EpiCanto,
+}
+
+
 class Epitran(object):
     """Unified interface for IPA transliteration/transcription
 
@@ -23,12 +34,9 @@ class Epitran(object):
     :param rev_preproc bool: if True, apply preprocessors when reverse transliterating
     :param rev_postproc bool: if True, apply postprocessors when reverse transliterating
     """
-    special = {'eng-Latn': FliteLexLookup,
-               'cmn-Hans': Epihan,
-               'cmn-Hant': EpihanTraditional,
-               'jpn-Jpan': EpiJpan,
-               'yue-Hant': EpiCanto,
-               }
+
+    # Backward-compatible alias
+    special = SPECIAL_LANGUAGE_BACKENDS
 
     def __init__(self, code: str, **kwargs):
         """Constructor method
@@ -45,8 +53,8 @@ class Epitran(object):
                 rev_postproc (bool): if True, apply postprocessor when reverse transliterating (default: True)
                 tones (bool): if True, include tone information (default: False)
         """
-        if code in self.special:
-            self.epi = self.special[code](**kwargs)
+        if code in SPECIAL_LANGUAGE_BACKENDS:
+            self.epi = SPECIAL_LANGUAGE_BACKENDS[code](**kwargs)
         else:
             self.epi = SimpleEpitran(code, **kwargs)
         self.ft = panphon.featuretable.FeatureTable()

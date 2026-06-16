@@ -58,8 +58,8 @@ class SimpleEpitran(object):
         tones = kwargs.get('tones', False)
         self.rev = rev
         self.tones = tones
-        self.g2p = self._load_g2p_map(code, False)
-        self.regexp = self._construct_regex(self.g2p.keys())
+        self.g2p = self._load_grapheme_to_phoneme_map(code, False)
+        self.regexp = self._build_greedy_match_regex(self.g2p.keys())
         self.puncnorm = PuncNorm()
         self.ft = panphon.FeatureTable()
         self.num_panphon_fts = len(self.ft.names)
@@ -72,8 +72,8 @@ class SimpleEpitran(object):
         self.rev_preproc = rev_preproc
         self.rev_postproc = rev_postproc
         if rev:
-            self.rev_g2p = self._load_g2p_map(code, True)
-            self.rev_regexp = self._construct_regex(self.rev_g2p.keys())
+            self.rev_g2p = self._load_grapheme_to_phoneme_map(code, True)
+            self.rev_regexp = self._build_greedy_match_regex(self.rev_g2p.keys())
             self.rev_preprocessor = PrePostProcessor(code, 'pre', True)
             self.rev_postprocessor = PrePostProcessor(code, 'post', True)
 
@@ -101,13 +101,14 @@ class SimpleEpitran(object):
     #             return (g, ls)
     #     return ("", [])
 
-    def _non_deterministic_mappings(self, gr_by_line: "dict[str, list[int]]") -> "list[tuple[str, list[int]]]":
+    def _find_ambiguous_mappings(self, gr_by_line: "dict[str, list[int]]") -> "list[tuple[str, list[int]]]":
+        """Find graphemes that map to multiple phonemes (one-to-many mappings)."""
         return [(g, ls) for (g, ls) in gr_by_line.items() if len(ls) > 1]
 
-    def _load_g2p_map(self, code: str, rev: bool) -> "DefaultDict[str, list[str]]":
-        """Load the code table for the specified language.
+    def _load_grapheme_to_phoneme_map(self, code: str, rev: bool) -> "DefaultDict[str, list[str]]":
+        """Load the grapheme-to-phoneme mapping table for the specified language.
 
-        :param code str: ISO 639-3 code plus "-" plus ISO 15924 code for the language/script to be loaded 
+        :param code str: ISO 639-3 code plus "-" plus ISO 15924 code for the language/script to be loaded
         :param rev bool: If True, reverse the table (for reverse transliterating)
         :return: A mapping from graphemes to phonemes
         :rtype: DefaultDict[str, list[str]]
@@ -138,7 +139,7 @@ class SimpleEpitran(object):
         except (FileNotFoundError, IndexError) as malformed_data_file:
             raise DatafileError(
                 'Add an appropriately-named mapping to the data/maps directory.') from malformed_data_file
-        nondeterminisms = self._non_deterministic_mappings(gr_by_line)
+        nondeterminisms = self._find_ambiguous_mappings(gr_by_line)
         if nondeterminisms:
             message = ""
             for graph, lines in nondeterminisms:
@@ -157,9 +158,10 @@ class SimpleEpitran(object):
             next(reader)
             return {punc: norm for (punc, norm) in reader}
 
-    def _construct_regex(self, g2p_keys: Any) -> Any:
-        """Build a regular expression that will greadily match segments from
-           the mapping table.
+    def _build_greedy_match_regex(self, g2p_keys: Any) -> Any:
+        """Build a regular expression that will greedily match segments from
+           the mapping table. Longer graphemes are tried first to ensure
+           maximal munch tokenization.
         """
         graphemes = sorted(g2p_keys, key=len, reverse=True)
         return regex.compile(f"({r'|'.join(graphemes)})", regex.I)
@@ -213,13 +215,20 @@ class SimpleEpitran(object):
             text = self.puncnorm.norm(text)
         return unicodedata.normalize('NFC', text)
 
-    # Korean exception handling in transliterate
-    def is_korean(self, text: str) -> bool:
-        """Check if the text contains any Korean characters."""
+    def contains_korean_syllables(self, text: str) -> bool:
+        """Check if the text contains any Korean Hangul syllable characters.
+
+        Detects characters in the Hangul Syllables Unicode block (U+AC00–U+D7A3),
+        which covers precomposed Korean syllables. Jamo components are not detected.
+        """
         for char in text:
             if '\uAC00' <= char <= '\uD7A3':  # Checking Korean Unicode
                 return True
         return False
+
+    def is_korean(self, text: str) -> bool:
+        """Deprecated: Use contains_korean_syllables() instead."""
+        return self.contains_korean_syllables(text)
 
     def transliterate(self, text: str, normpunc: bool = False, ligatures: bool = False) -> str:
         """Transliterates/transcribes a word into IPA. Passes unmapped 
@@ -234,7 +243,7 @@ class SimpleEpitran(object):
         :rtype: str
         """
         try:
-            if self.is_korean(text):
+            if self.contains_korean_syllables(text):
                 text = j2hcj(h2j(text))
         except Exception as e:
             print(f"Error during Korean transliteration: {e}")

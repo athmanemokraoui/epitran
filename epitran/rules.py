@@ -56,7 +56,8 @@ class Rules(object):
                         rules.append(self._read_rule(i, line))
         return [rule for rule in rules if rule is not None]
 
-    def _sub_symbols(self, line: str) -> str:
+    def _expand_symbol_references(self, line: str) -> str:
+        """Replace ::symbol:: references with their defined values."""
         while re.search(r'::\w+::', line):
             s = re.search(r'::\w+::', line).group(0)
             if s in self.symbols:
@@ -73,7 +74,7 @@ class Rules(object):
             if s:
                 self.symbols[s.group('symbol')] = s.group('value')
             else:
-                line = self._sub_symbols(line)
+                line = self._expand_symbol_references(line)
                 r = re.match(r'(\S+)\s*->\s*(\S+)\s*/\s*(\S*)\s*[_]\s*(\S*)', line)
                 try:
                     a, b, X, Y = r.groups()
@@ -83,14 +84,15 @@ class Rules(object):
                 a, b = a.replace('0', ''), b.replace('0', '')
                 try:
                     if re.search(r'[?]P[<]sw1[>].+[?]P[<]sw2[>]', a):
-                        return self._fields_to_function_metathesis(a, X, Y)
+                        return self._compile_metathesis_rule(a, X, Y)
                     else:
-                        return self._fields_to_function(a, b, X, Y)
+                        return self._compile_replacement_rule(a, b, X, Y)
                 except Exception as e:
                     raise DatafileError('Line {}: "{}" cannot be compiled as regex: ̪{}'.format(i + 1, line, e))
         return None
 
-    def _fields_to_function_metathesis(self, a: str, X: str, Y: str) -> Callable[[str], str]:
+    def _compile_metathesis_rule(self, a: str, X: str, Y: str) -> Callable[[str], str]:
+        """Compile a metathesis (swap) rule: swap two captured groups within context."""
         left = r'(?P<X>{}){}(?P<Y>{})'.format(X, a, Y)
         regexp = re.compile(left)
 
@@ -100,7 +102,8 @@ class Rules(object):
 
         return lambda w: regexp.sub(rewrite, w, re.U)
 
-    def _fields_to_function(self, a: str, b: str, X: str, Y: str) -> Callable[[str], str]:
+    def _compile_replacement_rule(self, a: str, b: str, X: str, Y: str) -> Callable[[str], str]:
+        """Compile a context-sensitive replacement rule into a regex substitution."""
         left = r'(?P<X>{})(?P<a>{})(?P<Y>{})'.format(X, a, Y)
         regexp = re.compile(left)
 

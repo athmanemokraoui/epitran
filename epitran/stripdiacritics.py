@@ -31,17 +31,22 @@ class StripDiacritics(object):
             pass
         return diacritics
 
-    def process(self, word: str) -> str:
-        """Remove diacritics from an input string
+    def strip_specified_diacritics(self, word: str) -> str:
+        """Remove language-specific diacritics from an input string.
+
+        Strips only the diacritics specified in the language's strip file,
+        leaving all other characters (including other diacritics) untouched.
 
         Args:
             word (str): Unicode IPA string
 
         Returns:
-            str: Unicode IPA string with specified diacritics
-            removed
+            str: Unicode IPA string with specified diacritics removed
         """
-        # word = unicodedata.normalize('NFD', word)
         word = ''.join(filter(lambda x: x not in self.diacritics, word))
-        # return unicodedata.normalize('NFC', word)
         return word
+
+    # Backward-compatible alias
+    def process(self, word: str) -> str:
+        """Deprecated: Use strip_specified_diacritics() instead."""
+        return self.strip_specified_diacritics(word)
