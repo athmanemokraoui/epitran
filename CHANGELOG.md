@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.35.2 (2026-06-18)
+
+### Refactoring
+
+- Improve naming, structure, and documentation
+  ([`f8b1945`](https://github.com/dmort27/epitran/commit/f8b19454ae7446ac43675e1532dc8c49e48de649))
+
+
 ## v1.35.1 (2026-04-24)
 
 
