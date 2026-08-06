@@ -1,32 +1,38 @@
 % ============================================================
 % Kabyle (kab-Latn) postprocessor for Epitran
-% Ported from orthography2ipa/data/kab.json (Mokraoui 2026)
+% Athmane Mokraoui
 % ============================================================
 
-% Define symbol groups for reuse and readability
-::vowels:: = a|i|u|ə
+% Define symbol groups
+::vowels:: = a|æ|ɑ|i|ɪ|u|ʊ|ə|e|o|ɛ|ɔ
 ::emphatics:: = ṣ|ḍ|ṭ|ẓ|ṛ|sˤ|dˤ|tˤ|zˤ|rˤ
-::uvulars:: = q|x|χ|ɣ|ʁ
-::dorsals:: = k|g|ɡ|q|x|χ|ɣ|ʁ
-::palatals:: = j|ʒ|ʃ|d͡ʒ|t͡ʃ
+::uvulars:: = q|qː|x|xː|χ|χː|ɣ|ɣː|ʁ|ʁː
+::dorsals:: = k|kː|g|gː|ɡ|ɡː|q|qː|x|xː|χ|χː|ɣ|ɣː|ʁ|ʁː
+::palatals:: = j|ʒ|ʃ|d͡ʒ|t͡ʃ|d͡ʒː|t͡ʃː
 
 % ============================================================
-% 1. NASAL PLACE ASSIMILATION
+% 1. DEFAULT VOWEL REALIZATION
 % ============================================================
-% /n/ assimilates to [ŋ] before dorsals and palatals
-n -> ŋ / _ (::dorsals::|::palatals::)
-% /n/ assimilates to [m] before labials
-n -> m / _ (b|p|f|m)
+% Epitran map.csv maps 'a' -> 'a'. In Kabyle, default 'a' is [æ].
+a -> æ
 
 % ============================================================
 % 2. VOWEL BACKING (Emphatic/Uvular Spread)
 % ============================================================
-% /a/ backs to [ɑ] near emphatic and uvular consonants
-a -> ɑ / _ (::emphatics::|::uvulars::)
-a -> ɑ / (::emphatics::|::uvulars::) _
+% /æ/ backs to [ɑ] near emphatic and uvular consonants
+æ -> ɑ / _ (::emphatics::|::uvulars::)
+æ -> ɑ / (::emphatics::|::uvulars::) _
 
 % ============================================================
-% 3. SPIRANTIZATION (Positive Constraints)
+% 3. NASAL PLACE ASSIMILATION
+% ============================================================
+% /n/ assimilates to [ŋ] before dorsals and palatals
+n -> ŋ / _ (::dorsals::|::palatals::)
+% /n/ assimilates to [m] before labials
+n -> m / _ (b|bː|p|f|m|mː)
+
+% ============================================================
+% 4. SPIRANTIZATION (Positive Constraints)
 % ============================================================
 % We ONLY apply spirantization post-vocalically, word-initially (#),
 % or after specific sonorants. This inherently BLOCKS it
