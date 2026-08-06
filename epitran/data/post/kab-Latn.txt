@@ -1,24 +1,61 @@
+% ============================================================
 % Kabyle (kab-Latn) postprocessor for Epitran
-% Author: Athmane MOKRAOUI
-%
-% This postprocessor cleans up phonological output after mapping.
-% 
-% Current version is minimal - most Kabyle phonology is handled
-% in the preprocessor. Future versions may add:
-% - Schwa deletion in specific cluster environments
-% - Emphatic spread effects on vowels
-% - Vowel reduction rules
+% Ported from orthography2ipa/data/kab.json (Mokraoui 2026)
+% ============================================================
+
+% Define symbol groups for reuse and readability
+::vowels:: = a|i|u|ə
+::emphatics:: = ṣ|ḍ|ṭ|ẓ|ṛ|sˤ|dˤ|tˤ|zˤ|rˤ
+::uvulars:: = q|x|χ|ɣ|ʁ
+::dorsals:: = k|g|ɡ|q|x|χ|ɣ|ʁ
+::palatals:: = j|ʒ|ʃ|d͡ʒ|t͡ʃ
 
 % ============================================================
-% 1. SCHWA CLEANUP (optional)
+% 1. NASAL PLACE ASSIMILATION
 % ============================================================
-% Delete schwa between consonants in certain environments
-% This is a conservative rule - uncomment if needed
-% ə -> 0 / (b|d|f|g|ɣ|h|j|k|l|m|n|q|r|s|t|w|x|z|ʃ|ʒ|χ|ħ|θ) _ (b|d|f|g|ɣ|h|j|k|l|m|n|q|r|s|t|w|x|z|ʃ|ʒ|χ|ħ|θ)
+% /n/ assimilates to [ŋ] before dorsals and palatals
+n -> ŋ / _ (::dorsals::|::palatals::)
+% /n/ assimilates to [m] before labials
+n -> m / _ (b|p|f|m)
 
 % ============================================================
-% 2. VOWEL LENGTH REMOVAL
+% 2. VOWEL BACKING (Emphatic/Uvular Spread)
 % ============================================================
-% Kabyle does not have phonemic vowel length.
-% If length markers appear (from geminate mapping), they are
-% consonantal length, not vocalic. No action needed here.
+% /a/ backs to [ɑ] near emphatic and uvular consonants
+a -> ɑ / _ (::emphatics::|::uvulars::)
+a -> ɑ / (::emphatics::|::uvulars::) _
+
+% ============================================================
+% 3. SPIRANTIZATION (Positive Constraints)
+% ============================================================
+% We ONLY apply spirantization post-vocalically, word-initially (#),
+% or after specific sonorants. This inherently BLOCKS it
+% after homorganic nasals (mb, nt, nd) and other consonants (lt).
+
+% Bilabial /b/ -> [β]
+b -> β / # _
+b -> β / ::vowels:: _
+
+% Dental /d/ -> [ð]
+d -> ð / # _
+d -> ð / ::vowels:: _
+
+% Emphatic Dental /ḍ/ -> [ðˤ]
+ḍ -> ðˤ / # _
+ḍ -> ðˤ / ::vowels:: _
+
+% Dental /t/ -> [θ]
+t -> θ / # _
+t -> θ / ::vowels:: _
+
+% Velar /k/ -> [ç] (Spirantizes post-vocalically, initially, and after /r/)
+k -> ç / # _
+k -> ç / ::vowels:: _
+k -> ç / r _
+k -> ç / rˤ _
+
+% Velar /g/ -> [ʝ] (Spirantizes post-vocalically, initially, and after /m/)
+% Note: Blocked after /r/ (argaz -> [arɡaz])
+g -> ʝ / # _
+g -> ʝ / ::vowels:: _
+g -> ʝ / m _
