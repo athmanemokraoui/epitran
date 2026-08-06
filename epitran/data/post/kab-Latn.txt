@@ -20,7 +20,7 @@ a -> æ / _
 % 3. Nasal Place Assimilation
 % /n/ assimilates to [ŋ] before dorsals and palatals
 n -> ŋ / _ (::dorsals::|::palatals::)
-% /n/ assimilizes to [m] before labials
+% /n/ assimilates to [m] before labials
 n -> m / _ (b|B|p|f|m)
 
 % 4. Spirantization (Positive Constraints)
