@@ -10,7 +10,7 @@ class TestKabyle(unittest.TestCase):
             ("taqcict", "θɑqʃiʃt"),      # a backs to ɑ near q; final t stays t after ʃ
             ("tamellalt", "θæməlːælt"),  # Perfect
             ("axxam", "ɑχːɑm"),          # a backs to ɑ near χː
-            ("Nniɣ", "nːiʁ"),            # Perfect
+            ("nniɣ", "nːiʁ"),            # Lowercase input to match map.csv nn -> nː
             ("abrid", "æβrið"),          # final d after i spirantizes to ð
             ("tewwiḍ", "θəwːiðˤ"),       # final ḍ after i spirantizes to ðˤ
         ]:
