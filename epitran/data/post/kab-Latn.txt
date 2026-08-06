@@ -1,39 +1,29 @@
-% ============================================================
-% Kabyle (kab-Latn) postprocessor for Epitran
-% Athmane Mokraoui
-% ============================================================
+% Kabyle (kab-Latn) postprocessor
+% Implements dynamic phonological rules for spirantization, vowel backing, and nasal assimilation.
+% Uses uppercase placeholders for geminates to protect them from spirantization.
 
-% Define symbol groups
 ::vowels:: = a|æ|ɑ|i|ɪ|u|ʊ|ə|e|o|ɛ|ɔ
-::emphatics:: = ṣ|ḍ|ṭ|ẓ|ṛ|sˤ|dˤ|tˤ|zˤ|rˤ
+::emphatics:: = ṣ|ḍ|ṭ|ẓ|ṛ|sˤ|dˤ|tˤ|zˤ|rˤ|Ṭ|Ḍ
 ::uvulars:: = q|qː|x|xː|χ|χː|ɣ|ɣː|ʁ|ʁː
-::dorsals:: = k|kː|g|gː|ɡ|ɡː|q|qː|x|xː|χ|χː|ɣ|ɣː|ʁ|ʁː
+::dorsals:: = k|K|g|G|q|qː|x|xː|χ|χː|ɣ|ɣː|ʁ|ʁː
 ::palatals:: = j|ʒ|ʃ|d͡ʒ|t͡ʃ|d͡ʒː|t͡ʃː
 
-% ============================================================
-% 1. DEFAULT VOWEL REALIZATION
-% ============================================================
+% 1. Default Vowel Realization
 % Epitran map.csv maps 'a' -> 'a'. In Kabyle, default 'a' is [æ].
-a -> æ
+a -> æ / _
 
-% ============================================================
-% 2. VOWEL BACKING (Emphatic/Uvular Spread)
-% ============================================================
+% 2. Vowel Backing (Emphatic/Uvular Spread)
 % /æ/ backs to [ɑ] near emphatic and uvular consonants
 æ -> ɑ / _ (::emphatics::|::uvulars::)
 æ -> ɑ / (::emphatics::|::uvulars::) _
 
-% ============================================================
-% 3. NASAL PLACE ASSIMILATION
-% ============================================================
+% 3. Nasal Place Assimilation
 % /n/ assimilates to [ŋ] before dorsals and palatals
 n -> ŋ / _ (::dorsals::|::palatals::)
-% /n/ assimilates to [m] before labials
-n -> m / _ (b|bː|p|f|m|mː)
+% /n/ assimilizes to [m] before labials
+n -> m / _ (b|B|p|f|m)
 
-% ============================================================
-% 4. SPIRANTIZATION (Positive Constraints)
-% ============================================================
+% 4. Spirantization (Positive Constraints)
 % We ONLY apply spirantization post-vocalically, word-initially (#),
 % or after specific sonorants. This inherently BLOCKS it
 % after homorganic nasals (mb, nt, nd) and other consonants (lt).
@@ -43,12 +33,17 @@ b -> β / # _
 b -> β / ::vowels:: _
 
 % Dental /d/ -> [ð]
-d -> ð / # _
+% NO word-initial rule for d (matches o2i's KAB_BLOCK_SPIRANT_D_WORD_INITIAL)
 d -> ð / ::vowels:: _
+d -> ð / r _
+d -> ð / rˤ _
 
 % Emphatic Dental /ḍ/ -> [ðˤ]
-ḍ -> ðˤ / # _
-ḍ -> ðˤ / ::vowels:: _
+% NO word-initial rule for ḍ
+Ḍ -> ðˤ / ::vowels:: _
+Ḍ -> ðˤ / n _
+Ḍ -> ðˤ / m _
+Ḍ -> ðˤ / l _
 
 % Dental /t/ -> [θ]
 t -> θ / # _
@@ -62,6 +57,18 @@ k -> ç / rˤ _
 
 % Velar /g/ -> [ʝ] (Spirantizes post-vocalically, initially, and after /m/)
 % Note: Blocked after /r/ (argaz -> [arɡaz])
-g -> ʝ / # _
-g -> ʝ / ::vowels:: _
-g -> ʝ / m _
+ɡ -> ʝ / # _
+ɡ -> ʝ / ::vowels:: _
+ɡ -> ʝ / m _
+
+% 5. Restore Placeholders (Lowercase them back)
+% This must happen AFTER all spirantization rules
+Bː -> bː / _
+Dː -> dː / _
+Tː -> tː / _
+Kː -> kː / _
+Gː -> ɡː / _
+Ṭ -> tˤ / _
+Ṭː -> tˤː / _
+Ḍ -> dˤ / _
+Ḍː -> dˤː / _
